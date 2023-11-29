@@ -1,0 +1,319 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>ZEOS Exchange</title>
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js" ></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+        <script type="text/javascript" src="https://unpkg.com/anchor-link@3"></script>
+        <script type="text/javascript" src="https://unpkg.com/anchor-link-browser-transport@3"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eosjs-ecc@4.0.4/lib/eosjs-ecc.min.js"></script>
+        <script type="text/javascript" src="charting_library.standalone.js"></script>
+        <script type="text/javascript" src="bundle.js"></script>
+        <script type="text/javascript" src="dex.js"></script>
+        <script type="text/javascript" src="transact-browser.js"></script>
+        <script type="text/javascript" src="app-min.js"></script>
+        <script type="module">
+            import Datafeed from './datafeed.js';
+            // initialize tradingview chart widget
+            window.tvWidget = new TradingView.widget({
+                symbol: 'ZEOSEXCHANGE:ZEOS/EOS',       // Default symbol pair (must have index 0 in symbols map)
+                interval: '1D',                        // Default interval
+                fullscreen: false,                     // Displays the chart in the fullscreen mode
+                container: 'tv_chart_container',       // Reference to the attribute of the DOM element
+                datafeed: Datafeed,
+                library_path: 'charting_library/',
+                enabled_features: [],
+            });
+            window.tvWidget.onChartReady(function() {
+                // update UI if symbol of chart changes
+                window.tvWidget.chart().onSymbolChanged().subscribe(null, () => {
+                    Datafeed.setNewSymbol(window.tvWidget.chart().symbol());
+                }, false);
+                // set default theme
+                window.tvWidget.changeTheme('light');
+                if(localStorage.getItem('dark-theme') !== null)
+                {
+                    toggleTheme();
+                }
+                //$('body').toggleClass('dark-theme');
+            });
+        </script>
+    </head>
+    <body onload="restoreSession()">
+        <div id="app-top-bar">
+            <!-- <div class="app-top-bar-item"><img src="logo_white.png" style="max-height:100%; float: left;" /><h1>ZEOS Hybrid Order Book Exchange</h1></div> -->
+            <div class="app-top-bar-item"><div id="logo"></div><h1>ZEOS Hybrid Order Book Exchange</h1></div>
+            <div class="app-top-bar-item"><div id="logo-bg"></div></div>
+            <div class="app-top-bar-item">
+                <div class="app-top-bar-icon"><img id="login-switch" title="connect wallet" src="login-icon.png" onmouseover="this.src='login-icon-hover.png'" onmouseout="this.src='login-icon.png'" onclick="login()"/></div>
+                <div class="app-top-bar-icon"><img id="toggle-theme-switch" title="switch to dark theme" src="moon-icon.png" onmouseover="this.src='moon-icon-hover.png'" onmouseout="this.src='moon-icon.png'" onclick="toggleTheme()" /></div>
+                <div class="app-top-bar-icon"><a  href="#download" rel="modal:open"><img id="download-switch" title="download user interface" src="download-icon.png" onmouseover="this.src='download-icon-hover.png'" onmouseout="this.src='download-icon.png'" /></a></div>
+                <div class="app-top-bar-icon"><a  href="#info" rel="modal:open"><img id="info-switch" title="about this exchange" src="info-icon.png" onmouseover="this.src='info-icon-hover.png'" onmouseout="this.src='info-icon.png'" /></a></div>
+                </div>
+            </div>
+        </div>
+        <div id="app-container">
+            <div id="app">
+                <table id="top-bar" class="fixed_header">
+                    <thead>
+                        <tr>
+                            <th>Market</th>
+                            <th>Last Price</th>
+                            <th>24h Change</th>
+                            <th>24h High</th>
+                            <th>24h Low</th>
+                            <th>24h Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="tb-item"><span class="bsym">BASE</span>/<span class="qsym">QUOTE</span></td>
+                            <td class="tb-item" id="lp-td"><span id="lastprice">0</span> <span class="qsym">QUOTE</span></td>
+                            <td class="tb-item"><span id="h24change">0%</span></td>
+                            <td class="tb-item"><span id="h24high">0</span> <span class="qsym">QUOTE</span></td>
+                            <td class="tb-item"><span id="h24low">0</span> <span class="qsym">QUOTE</span></td>
+                            <td class="tb-item"><span id="h24volume">0</span> <span class="bsym">BASE</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="book">
+                    <table id="book-ask" class="fixed_header">
+                        <thead>
+                            <tr><th colspan="3" style="text-align: center;">Ask</th></tr>
+                            <tr>
+                                <th>Price (<span class="qsym">QUOTE</span>)</th>
+                                <th>Amount (<span class="bsym">BASE</span>)</th>
+                                <th>Total (<span class="qsym">QUOTE</span>)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <table id="pool" class="fixed_header">
+                        <thead>
+                            <tr><th colspan="3" style="text-align: center;">Pool</th></tr>
+                            <tr>
+                                <th>Price (<span class="qsym">QUOTE</span>)</th>
+                                <th></th>
+                                <th>Depth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="current-price" rowspan="2"><span class="poolprice">0</span></td>
+                            <td><span class="bsym">BASE</span></td>
+                            <td><span class="poolamountbase">0</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="qsym">QUOTE</span></td>
+                            <td><span class="poolamountquote">0</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <table id="book-bid" class="fixed_header">
+                        <thead>
+                            <tr><th colspan="3" style="text-align: center;">Bid</th></tr>
+                            <tr>
+                                <th>Price (<span class="qsym">QUOTE</span>)</th>
+                                <th>Amount (<span class="bsym">BASE</span>)</th>
+                                <th>Total (<span class="qsym">QUOTE</span>)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="tv_chart_container"></div>
+                <table id="ticker-list" class="fixed_header">
+                    <thead>
+                        <tr><th colspan="4" style="text-align: center;">Ticker List</th></tr>
+                        <tr>
+                            <th>Market</th>
+                            <th>Last Price</th>
+                            <th>24h Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <table id="latest-deals" class="fixed_header">
+                    <thead>
+                        <tr><th colspan="4" style="text-align: center;">Latest Deals <img width="10" height="10" src="upload-icon.png" title="archive latest deals on chain" onmouseover="this.src='upload-icon-hover.png'" onmouseout="this.src='upload-icon.png'" onclick="archiveTicks()" /></th></tr>
+                        <tr>
+                            <th>LP</th>
+                            <th>Price (<span class="qsym">QUOTE</span>)</th>
+                            <th>Volume (<span class="bsym">BASE</span>)</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <table id="trading-interface" class="fixed_header">
+                    <thead>
+                        <tr><th colspan="2" style="text-align: center;">Exchange Assets</th></tr>
+                        <tr>
+                            <th>Buy</th>
+                            <th>Sell</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ti-box">
+                                <div class="ti_item current-price" id="qbal">0 <span class="qsym">QUOTE</span></div>
+                                <select name="ti-buy-ot" id="ti-buy-ot" class="ti_item" style="width: 208px; margin-left: 8px;">
+                                    <option value="limit">Limit</option>
+                                    <option value="market">Market</option>
+                                    <option value="stop">Stop</option>
+                                    <option value="stoplimit">Stop-Limit</option>
+                                </select>
+                                <div class="ti_item"><input type="number" id="ti-buy-stop-price" placeholder="Stop-Price" style="width: 100%; display: none;"><span id="ti-buy-stop-price-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><input type="number" id="ti-buy-price" placeholder="Price" style="width: 100%;"><span id="ti-buy-price-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><input type="number" id="ti-buy-amount" placeholder="Amount" style="width: 200px;"><span id="ti-buy-amount-suffix" class="bsym suffix">BASE</span></div>
+                                <div class="ti_item"><input type="range" id="ti-buy-slider" min="0" max="100" value="0" style="width: 210px;"></div>
+                                <div class="ti_item"><input type="number" id="ti-buy-total" placeholder="Total" style="width: 200px;"><span id="ti-buy-total-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><button id="ti-buy-btn" style="width: 210px;">BUY</button></div>
+                                <div class="ti_item"><button id="ti-buy-enable-btn" class="default-btn" style="width: 210px; display: none;" onclick="$('#setup-stopcontract').modal('show');">Enable Stop Orders</button></div>
+                            </td>
+                            <td class="ti-box">
+                                <div class="ti_item current-price" id="bbal">0 <span class="bsym">BASE</span></div>
+                                <select name="ti-sell-ot" id="ti-sell-ot" class="ti_item" style="width: 208px; margin-left: 8px;">
+                                    <option value="limit">Limit</option>
+                                    <option value="market">Market</option>
+                                    <option value="stop">Stop</option>
+                                    <option value="stoplimit">Stop-Limit</option>
+                                </select>
+                                <div class="ti_item"><input type="number" id="ti-sell-stop-price" placeholder="Stop-Price" style="width: 100%; display: none;"><span id="ti-sell-stop-price-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><input type="number" id="ti-sell-price" placeholder="Price" style="width: 200px;"><span id="ti-sell-price-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><input type="number" id="ti-sell-amount" placeholder="Amount" style="width: 200px;"><span id="ti-sell-amount-suffix" class="bsym suffix">BASE</span></div>
+                                <div class="ti_item"><input type="range" id="ti-sell-slider" min="0" max="100" value="0" style="width: 210px;"></div>
+                                <div class="ti_item"><input type="number" id="ti-sell-total" placeholder="Total" style="width: 200px;"><span id="ti-sell-total-suffix" class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><button id="ti-sell-btn" style="width: 210px;">SELL</button></div>
+                                <div class="ti_item"><button id="ti-sell-enable-btn" class="default-btn" style="width: 210px; display: none;" onclick="$('#setup-stopcontract').modal('show');">Enable Stop Orders</button></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table id="liquidity-interface" class="fixed_header">
+                    <thead>
+                        <tr><th colspan="3" style="text-align: center;">Manage Liquidity</th></tr>
+                        <tr>
+                            <th>Deposit</th>
+                            <th>Shares</th>
+                            <th>Withdraw</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ti-box">
+                                <div class="ti_item"><input type="number" id="li-base-amount" placeholder="Amount" style="width: 200px;"><span class="bsym suffix">BASE</span></div>
+                                <div class="ti_item"><input type="number" id="li-quote-amount" placeholder="Amount" style="width: 200px;"><span class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><input type="range" id="li-deposit-slider" min="0" max="100" value="0" style="width: 210px;"></div>
+                                <div class="ti_item"><input type="number" id="li-receive-shares" placeholder="Amount" style="width: 200px;" disabled><span class="ssym suffix">SHARES</span></div>
+                                <div class="ti_item"><button id="li-deposit-btn" style="width: 210px;">Deposit</button></div>
+                            </td>
+                            <td class="ti-box">
+                                <div class="ti_item current-price" id="sbal">0 <span class="qsym">SHARES</span></div>
+                                <table id="userpool" class="fixed_header">
+                                    <thead><tr><th colspan="2">User Pool</td></tr></thead>
+                                    <tr>
+                                        <td>Total Share</td>
+                                        <td><span class="poolpercentage-user">0</span>%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="bsym">BASE</span></td>
+                                        <td><span class="poolamountbase-user">0</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="qsym">QUOTE</span></td>
+                                        <td><span class="poolamountquote-user">0</span></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td class="ti-box">
+                                <div class="ti_item"><input type="number" id="li-shares-amount" placeholder="Amount" style="width: 200px;"><span class="ssym suffix">SHARES</span></div>
+                                <div class="ti_item"><input type="range" id="li-withdraw-slider" min="0" max="100" value="0" style="width: 210px;"></div>
+                                <div class="ti_item"><input type="number" id="li-receive-base" placeholder="Amount" style="width: 200px;" disabled><span class="bsym suffix">BASE</span></div>
+                                <div class="ti_item"><input type="number" id="li-receive-quote" placeholder="Amount" style="width: 200px;" disabled><span class="qsym suffix">QUOTE</span></div>
+                                <div class="ti_item"><button id="li-withdraw-btn" style="width: 210px;">Withdraw</button></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table id="open-orders" class="fixed_header">
+                    <thead>
+                        <tr><th colspan="8" style="text-align: center;">Open Orders (<span class="bsym">BASE</span>/<span class="qsym">QUOTE</span>)</th></tr>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Order Type</th>
+                            <th>Stop-Price (<span class="qsym">QUOTE</span>)</th>
+                            <th>Limit-Price (<span class="qsym">QUOTE</span>)</th>
+                            <th>Amount Open</th>
+                            <th>Amount Dealt</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Cancel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="login" class="modal">
+            <h1 align="center">Connect Wallet</h1>
+            <div id="login-buttons"><div style="display: flex;"><a href='#' rel='modal:close'><div id="anchor-login" onclick="anchorLogin()"></div></a><div id="zeos-login" onclick="alert('coming soon!')"></div></div></div>
+        </div>
+        <div id="setup-stopcontract" class="modal">
+            <h1>Enable Stop-Orders for '<span class="session-actor"></span>'</h1>
+            <h2>Warning: Executing this transaction will...</h2>
+            <ul>
+                <li>Buy the required amount of RAM for your account (if necessary)</li>
+                <li>Deploy the ZEOS 'stopcontract' to your account</li>
+                <li>Update your account's 'active' permission in order to add 'eosio.code'</li>
+                <li>Create and link a new permission 'zeosexecstop' to enable this UI to execute stop orders on your behalf</li>
+            </ul>
+            <h3>Keep in mind that in order for stop orders to get executed you need to keep this UI running in your browser! This is crypto: There is no middle-man between you and the markets.</h3>
+            <p align="center">All active stop orders are stored on-chain (encrypted) in your account. Choose an encryption password:</p>
+            <p align="center"><input type="password" id="set-stop-password" name="set-stop-password" required /><i class="far fa-eye" id="togglePassword" style="margin-left: -20px; cursor: pointer;" onclick="$('#set-stop-password').attr('type', $('#set-stop-password').attr('type') === 'password' ? 'text' : 'password');this.classList.toggle('fa-eye-slash');"></i></p>
+            <p align="center">You will need to enter this password each time you login to this UI!</p>
+            <p align="center"><button class="default-btn" onclick="setupStopContract()">Sign me up!</button></p>
+        </div>
+        <div id="unlock-stopcontract" class="modal">
+            <h1 align="center">Unlock Stop-Orders</h1>
+            <p align="center"><input type="password" id="stop-password" name="stop-password" required /><i class="far fa-eye" id="togglePassword" style="margin-left: -20px; cursor: pointer;" onclick="$('#stop-password').attr('type', $('#stop-password').attr('type') === 'password' ? 'text' : 'password');this.classList.toggle('fa-eye-slash');"></i></p>
+            <p align="center"><button class="default-btn" onclick="unlockStopContract()">Unlock</button><button class="default-btn" onclick="resetStopContract()">Reset</button></p>
+            <p align="center">In case you forgot your password you can reset the Stop-Contract using the 'Reset' button. The password typed in above will become your new password. <i>Note that this will cancel all currently active Stop-Orders!</i></p>
+        </div>
+        <div id="info" class="modal">
+            <h1 align="center">Welcome to the ZEOS Exchange</h1>
+            <p>The ZEOS Exchange is the first fully decentralized hybrid order book exchange on the EOS blockchain and possibly in the entire crypto space. Features of the DEX include:</p>
+            <ul>
+                <li><b>Hybrid Order Book:</b> Each market consists of both - traditional order book and AMM liquidity pool. This maximizes the overall liquidity of markets as any spread between bid & ask is eliminated by the pool. Orders are always matched against both - book and pool - ensuring you always get the best price possible.</li>
+                <li><b>High-Performance Order Matching:</b> The ZEOS DEX is designed to be as fast and efficient as possible. Despite it being a hybrid order book exchange, our order matching algorithm is magnitudes faster than those of existing exchanges on EOS. In a single EOS transaction more than 500 orders can get matched without exceeding the 30ms transaction execution time limit.</li>
+                <li><b>Fully on-chain:</b> All market data is fully on-chain - including the entire market history. No traditional Web2 infrastructure is required to run the ZEOS DEX. Users can download the user interface and run it locally on their device without sacrificing user experience and without having to run an EOS full-node with expensive history plugin. This makes the ZEOS DEX truly censorship-resistant and a <i>true</i> Web3 application.</li>
+                <li><b>Stop/Stop-Limit Order Types:</b> Unlike any other DEX on EOS (and possibly in all of cypto) the ZEOS Exchange supports Stop and Stop-Limit order types. A valuable feature for traders who are used to those kind of orders from traditional financial markets.</li>
+                <li><b>Takers pay, Makers earn:</b> On the ZEOS exchange liquidity providers earn the lion share of the 0.3% trading fees. No matter if liquidity is prvided through limit orders (book) or the liquidity pool (AMM): Makers earn 0.2% trading fees while takers pay 0.3% trading fees. The remaining fee amount of 0.1% goes to the DEX as a platform fee.</li>
+                <li><b>Decentralized Ownership:</b> The ZEOS DEX is owned and governed by the ZEOS Fractal which is the DAO of the ZEOS ecosystem. No single company or developer team is the exclusive owner of the smart contract but the ZEOS community itself which elects their leadership through the dynamic and innovative process of "Fractal Governance".</li>
+                <li><b>Private Trading (coming soon):</b> As the first DEX on EOS (and most-likely in all of crypto) users will be able to trade <i>privately</i> on the exchange. In addition to traditional EOS accounts users will be able to connect their ZEOS wallet and remain completely anonymous while interacting with the markets. This feature will go live as soon as the ZEOS Shielded Protocol will launch in 2024.</li>
+            </ul>
+            <p align="center"><a href='#' rel='modal:close'><button class='default-btn'>Close</button></a></p>
+        </div>
+        <div id="download" class="modal">
+            <h1 align="center">Download User Interface</h1>
+            <p>You can download this user interface and run it locally on your device. All you need is NodeJS installed on your machine. The steps are as follows:</p>
+            <ul>
+                <li>Unpack the zip-archive</li>
+                <li>Open a terminal and navigate to the 'zeosexchange-ui' folder you just extracted</li>
+                <li>Run 'npm install'</li>
+                <li>Run the server locally by executing 'node index.js'</li>
+                <li>In your browser open 'localhost:9367'</li>
+            </ul>
+            <p>That's it!</p>
+            <p align="center"><a href='zeosexchange-ui.zip'><button class='default-btn'>Download</button></a></p>
+        </div>
+    </body>
+</html>
