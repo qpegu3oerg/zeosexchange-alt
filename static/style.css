@@ -1,0 +1,410 @@
+body {
+    font-family: "Arial";
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    min-width: 1400px;
+}
+
+#logo {
+    background: url(logo.png) left top no-repeat;
+    background-size: contain;
+    padding: 20px;
+    margin: 10px;
+}
+#logo:hover {
+    background: url(logo-hover.png) left top no-repeat;
+    background-size: contain;
+}
+
+#login-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+#anchor-login {
+    background: url(anchor.png) left top no-repeat;
+    background-size: contain;
+    padding: 32px;
+    margin: 10px;
+}
+#zeos-login {
+    background: url(logo-black.png) left top no-repeat;
+    background-size: contain;
+    padding: 32px;
+    margin: 10px;
+}
+.dark-theme #zeos-login {
+    background: url(logo.png) left top no-repeat;
+    background-size: contain;
+}
+
+#app-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #131722;
+    color: #d1d4dc;
+    height: 50px;
+    width: 100%;
+}
+.app-top-bar-item {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: fit-content;
+    white-space: nowrap;
+    padding: 10px;
+}
+.app-top-bar-icon {
+    width: 24px;
+    height: 24px;
+    padding: 10px;
+}
+.app-top-bar-icon img {
+    width: 100%;
+}
+
+#app-container {
+    min-width: 1400px;
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#app {
+    width: 1400px;
+    height: 1300px;
+    display: grid;
+    grid-template-columns: 300px 800px 300px;
+    grid-template-rows: 50px 500px 290px 210px 250px;
+}
+
+#top-bar {
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 1;
+    grid-row-end: 1;
+    height: 50px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+.tb-item {
+    font-size: medium;
+}
+
+#tv_chart_container {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#book {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 5;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+#book-ask, #book-bid {
+    padding: 10px;
+    height: 463px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#pool {
+    padding: 10px;
+    height: 74px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#ticker-list {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    padding: 10px;
+    height: 500px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#latest-deals {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 3;
+    grid-row-end: 5;
+    padding: 10px;
+    height: 500px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#trading-interface {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+.ti-box {
+    padding: 20px 20px !important;
+}
+.ti_item {
+    width: 200px;
+    padding: 2px;
+    margin: auto;
+    position: relative;
+}
+
+#liquidity-interface {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 4;
+    grid-row-end: 5;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+#open-orders {
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 5;
+    grid-row-end: 6;
+    padding: 10px;
+    height: 250px;
+    box-sizing: border-box;
+    border: solid #ccc 1px;
+}
+
+
+.fixed_header{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.fixed_header tbody{
+  display: block;
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+}
+.fixed_header thead tr {
+  display:table-header-group;
+}
+.fixed_header thead {
+  background-color: #131722;
+  color:#d1d4dc;
+  display:table-header-group;
+}
+.fixed_header th, .fixed_header td {
+  padding: 2px;
+  text-align: right;
+}
+#top-bar th, #top-bar td {
+    width: 233px;
+    text-align: center;
+}
+#open-orders th, #open-orders td {
+    width: 155px;
+    text-align: right;
+}
+#latest-deals th, #latest-deals td {
+    width: 94px;
+    text-align: right;
+}
+#latest-deals th:first-child, #latest-deals td:first-child {
+    width: 16px;
+    text-align: left;
+}
+#book th, #book td, #ticker-list th, #ticker-list td {
+    width: 100px;
+}
+#trading-interface th, #trading-interface td, #liquidity-interface th, #liquidity-interface td {
+    width: 400px;
+    text-align: center;
+}
+#userpool td {
+    text-align: right;
+}
+
+.current-price {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+.price.sell {
+    color: #f23645;
+}
+.price.buy {
+    color: #089981;
+}
+
+#ticker-list >tbody tr:hover, #book-ask >tbody tr:hover, #book-bid >tbody tr:hover {
+    background: #f2f3ff;
+    outline: none;
+    cursor: pointer;
+}
+
+.suffix {
+    position: absolute;
+    right: 15px;
+    top: 6px;
+    color: #8e8e8e;
+}
+
+/* order book & pool depth bars */
+#book tr {
+    position: relative;
+}
+.depth-bar {
+    height: 99%;
+    position: absolute;
+    right: 0;
+    z-index: -1;
+    opacity: .5;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.depth-bar.ask {
+    background: rgba(232,18,52,.2);
+}
+.depth-bar.bid {
+    background: rgba(82,177,109,.35);
+}
+
+#ti-buy-btn {
+    display: inline-block;
+    outline: 0;
+    cursor: pointer;
+    padding: 5px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    vertical-align: middle;
+    border: 1px solid;
+    border-radius: 6px;
+    color: #d1d4dc;
+    background-color: #089981;
+    border-color: #1b1f2326;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+}
+#ti-buy-slider {
+    accent-color: #089981;
+}
+
+#ti-sell-btn {
+    display: inline-block;
+    outline: 0;
+    cursor: pointer;
+    padding: 5px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    vertical-align: middle;
+    border: 1px solid;
+    border-radius: 6px;
+    color: #d1d4dc;
+    background-color: #f23645;
+    border-color: #1b1f2326;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+}
+#ti-sell-slider {
+    accent-color: #f23645;
+}
+
+#li-deposit-btn {
+    display: inline-block;
+    outline: 0;
+    cursor: pointer;
+    padding: 5px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    vertical-align: middle;
+    border: 1px solid;
+    border-radius: 6px;
+    color: #d1d4dc;
+    background-color: #000;
+    border-color: #1b1f2326;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+}
+#li-deposit-slider {
+    accent-color: #000;
+}
+
+#li-withdraw-btn {
+    display: inline-block;
+    outline: 0;
+    cursor: pointer;
+    padding: 5px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    vertical-align: middle;
+    border: 1px solid;
+    border-radius: 6px;
+    color: #d1d4dc;
+    background-color: #000;
+    border-color: #1b1f2326;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+}
+#li-withdraw-slider {
+    accent-color: #000;
+}
+
+.default-btn {
+    display: inline-block;
+    outline: 0;
+    cursor: pointer;
+    padding: 5px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    vertical-align: middle;
+    border: 1px solid;
+    border-radius: 6px;
+    color: #d1d4dc;
+    background-color: #000;
+    border-color: #1b1f2326;
+    box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px, rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+}
+
+.modal {
+    font-size: medium;
+}
+.modal ul li{
+    margin-bottom:10px;
+}
+
+.dark-theme {
+    color-scheme: dark;
+    background-color: #131722;
+    color: #d1d4dc;
+}
+.dark-theme #app-top-bar, .dark-theme .fixed_header thead {
+    background-color: #2a2e39;
+    color:#d1d4dc;
+}
+.dark-theme input, .dark-theme select {
+    background: #2a2e39; 
+    color: #d1d4dc;
+}
+.dark-theme #ticker-list >tbody tr:hover, .dark-theme #book-ask >tbody tr:hover, .dark-theme #book-bid >tbody tr:hover {
+    background: #2a2e39;
+}
+.dark-theme #li-deposit-slider, .dark-theme #li-withdraw-slider {
+    accent-color: #d1d4dc;
+}
+.dark-theme .modal {
+    background-color: black;
+}
